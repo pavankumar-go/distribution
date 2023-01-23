@@ -31,7 +31,9 @@ type proxyingRegistry struct {
 // NewRegistryPullThroughCache creates a registry acting as a pull through cache
 func NewRegistryPullThroughCache(ctx context.Context, registry distribution.Namespace, driver driver.StorageDriver, config configuration.Proxy) (distribution.Namespace, error) {
 	remoteURL, err := url.Parse(config.RemoteURL)
+	fmt.Println("config.RemoteURL - ", config.RemoteURL, *remoteURL)
 	if err != nil {
+		fmt.Println("config.RemoteURL err - ", err)
 		return nil, err
 	}
 
@@ -90,13 +92,17 @@ func NewRegistryPullThroughCache(ctx context.Context, registry distribution.Name
 
 	err = s.Start()
 	if err != nil {
+		fmt.Println("TTL err - ", err)
 		return nil, err
 	}
 
 	cs, err := configureAuth(config.Username, config.Password, config.RemoteURL)
 	if err != nil {
+		fmt.Println("configureAuth err - ", err)
 		return nil, err
 	}
+
+	fmt.Println("configured auth - ", cs)
 
 	return &proxyingRegistry{
 		embedded:  registry,
@@ -120,7 +126,7 @@ func (pr *proxyingRegistry) Repositories(ctx context.Context, repos []string, la
 
 func (pr *proxyingRegistry) Repository(ctx context.Context, name reference.Named) (distribution.Repository, error) {
 	c := pr.authChallenger
-
+	fmt.Println("Got action docker pull")
 	tkopts := auth.TokenHandlerOptions{
 		Transport:   http.DefaultTransport,
 		Credentials: c.credentialStore(),
@@ -229,6 +235,7 @@ func (r *remoteAuthChallenger) tryEstablishChallenges(ctx context.Context) error
 
 	// establish challenge type with upstream
 	if err := ping(r.cm, remoteURL.String(), challengeHeader); err != nil {
+		fmt.Println("error ping:", err)
 		return err
 	}
 

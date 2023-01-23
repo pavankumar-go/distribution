@@ -42,6 +42,7 @@ func configureAuth(username, password, remoteURL string) (auth.CredentialStore, 
 	if err != nil {
 		return nil, err
 	}
+	context.GetLogger(context.Background()).Infoln("Auth URLS", authURLs)
 
 	for _, url := range authURLs {
 		context.GetLogger(context.Background()).Infof("Discovered token authentication URL: %s", url)
@@ -64,7 +65,7 @@ func getAuthURLs(remoteURL string) ([]string, error) {
 	defer resp.Body.Close()
 
 	for _, c := range challenge.ResponseChallenges(resp) {
-		if strings.EqualFold(c.Scheme, "bearer") {
+		if strings.EqualFold(c.Scheme, "basic") {
 			authURLs = append(authURLs, c.Parameters["realm"])
 		}
 	}
